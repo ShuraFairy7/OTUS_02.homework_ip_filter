@@ -7,28 +7,17 @@ project(ip_filter VERSION ${PROJECT_VESRION})
 
 option(WITH_BOOST_TEST "Whether to build Boost test" ON)
 
-configure_file(version.h.in version.h)
+add_executable(ip_filter main.cpp ip_filter.cpp ip_filter.h types.h utils.h utils.cpp)
 
-add_executable(ip_filter main.cpp ip_filter.cpp ip_filter.h types.h)
-add_library(ip_filter_lib lib.cpp)
-
-set_target_properties(ip_filter ip_filter_lib PROPERTIES
-        CXX_STANDARD 17
+set_target_properties(ip_filter PROPERTIES
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
         COMPILE_OPTIONS -Wall
-        )
-
-target_include_directories(ip_filter_lib
-    PRIVATE "${CMAKE_BINARY_DIR}"
-)
-
-target_link_libraries(ip_filter PRIVATE
-        ip_filter_lib
 )
 
 if(WITH_BOOST_TEST)
     find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-    add_executable(test_version test_version.cpp)
+    add_executable(test_version test_version.cpp utils.h utils.cpp types.h)
 
     set_target_properties(test_version PROPERTIES
         CXX_STANDARD 17
@@ -40,32 +29,21 @@ if(WITH_BOOST_TEST)
         COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
         INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR}
     )
-
-    target_link_libraries(test_version
-        ${Boost_LIBRARIES}
-        ip_filter_lib
-    )
+    
+    target_link_libraries(test_version ${Boost_LIBRARIES})
 endif()
 
 if (MSVC)
-    target_compile_options(ip_filter PRIVATE
-        /W4
-    )
-    target_compile_options(ip_filter_lib PRIVATE
-        /W4
-    )
+    target_compile_options(ip_filter PRIVATE /W4)
+    
     if(WITH_BOOST_TEST)
-        target_compile_options(test_version PRIVATE
-            /W4
-        )
+        target_compile_options(test_version PRIVATE /W4)
     endif()
 else ()
     target_compile_options(ip_filter PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
-    target_compile_options(ip_filter_lib PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+    
     if(WITH_BOOST_TEST)
         target_compile_options(test_version PRIVATE
             -Wall -Wextra -pedantic -Werror

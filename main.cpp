@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "types.h"
-#include "lib.h"
+#include "utils.h"
 #include "ip_filter.h"
 
 // ("",  '.') -> [""]
@@ -14,69 +14,22 @@
 // (".11", '.') -> ["", "11"]
 // ("11.22", '.') -> ["11", "22"]
 
-constexpr static const int IP_POOL_VECTOR_SIZE = 10000;
-
-string_vector split(const std::string& str, char d)
-{
-    std::vector<std::string> r;
-
-    std::string::size_type start = 0;
-    std::string::size_type stop = str.find_first_of(d);
-    while (stop != std::string::npos)
-    {
-        r.push_back(str.substr(start, stop - start));
-
-        start = stop + 1;
-        stop = str.find_first_of(d, start);
-    }
-
-    r.push_back(str.substr(start));
-
-    return r;
-}
-
-int_vector stringToInt(const std::vector<std::string>& ip)
-{
-    std::vector<int> result;
-    for (const auto& byte : ip)
-    {
-        result.push_back(std::stoi(byte));
-    }
-    return result;
-}
-
-void printIpPool(const ip_pool_vector & ip_pool)
-{
-    for (const auto& ip : ip_pool)
-    {
-        for (auto byte = ip.cbegin(); byte != ip.cend(); ++byte)
-        {
-            if (byte != ip.cbegin())
-            {
-                std::cout << ".";
-            }
-            std::cout << *byte;
-        }
-        std::cout << std::endl;
-    }
-}
-
-void reverseLexicographicalSortIpPool(ip_pool_vector& ip_pool) 
-{
-    std::sort(ip_pool.begin(), ip_pool.end(), std::greater<>());
-}
+constexpr static const int IP_POOL_VECTOR_SIZE{10000};
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char const* argv[])
 {     
     try
     {
         ip_pool_vector ip_pool;
-        ip_pool.reserve(IP_POOL_VECTOR_SIZE);        
+        ip_pool.reserve(IP_POOL_VECTOR_SIZE);    
+        size_t file_line_count{ 1 };
 
+        std::vector<std::string> v;
         for (std::string line; std::getline(std::cin, line);)
-        {
-            std::vector<std::string> v = split(line, '\t');
-            ip_pool.push_back(stringToInt(split(v.at(0), '.')));
+        {            
+            v = split(line, '\t');
+            ip_pool.push_back(stringToInt(split(v.at(0), '.'), file_line_count));
+            ++file_line_count;
         }
 
         ip_pool.shrink_to_fit();
